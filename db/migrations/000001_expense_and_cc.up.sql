@@ -1,22 +1,22 @@
 
+-- payment methods - cc,imps,cash. may be move to an enum type maybe.
 create table if not exists expense (
-   id integer primary key generated always as identity,
-   expense_date date not null default date(now()),
+    id integer primary key generated always as identity,
+    expense_date date not null default date(now()),
     amount integer not null ,
     payment_method text ,
     constraint fk_cc foreign key (cc_id) references credit_card(id) on delete set null,
     cc_id integer,
     cc_status text
-    );
+);
 
 create or replace function set_cc_status_to_unbilled()
     returns trigger as
 $$
 BEGIN
-    raise notice '%', NEW.cc_id;
     if  NEW.cc_id is null
     then
-        raise EXCEPTION 'Credit card not set and status=cc';
+        raise EXCEPTION 'Credit card id  not provided and status=cc';
 else
 UPDATE expense set cc_status = 'unbilled' where id=NEW.id;
 end if;
