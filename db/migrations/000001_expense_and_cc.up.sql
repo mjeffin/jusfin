@@ -5,7 +5,6 @@ create table if not exists expense (
     expense_date date not null default date(now()),
     amount integer not null ,
     payment_method text ,
-    constraint fk_cc foreign key (cc_id) references credit_card(id) on delete set null,
     cc_id integer,
     cc_status text
 );
@@ -48,6 +47,18 @@ create table if not exists credit_card (
    next_payment_date date
 );
 
+
+
+DO $$
+    BEGIN
+        BEGIN
+            alter table expense add constraint fk_cc foreign key (cc_id) references credit_card(id) on delete set null;
+        EXCEPTION
+            WHEN duplicate_object THEN RAISE NOTICE 'constraint credit card  already exists';
+        END;
+    END $$;
+
+
 -- TODO: adjust if month is december!!
 create or replace function get_next_billing_date(billing_date integer)
     returns date as
@@ -82,4 +93,5 @@ CREATE OR REPLACE  VIEW cc_total_to_pay AS
 select sum(amount) from expense where payment_method='cc' and cc_status != 'paid';
 
 CREATE OR REPLACE VIEW cc_to_pay AS
-select c.name, sum(e.amount) from credit_card c left join expense e on c.id = e.cc_id  where e.payment_method='cc' and e.cc_status != 'paid' group by c.name;
+select c.name, sum(e.amount) from credit_card c left join expense e on c.id = e.cc_id
+where e.payment_method='cc' and e.cc_status != 'paid' group by c.name;

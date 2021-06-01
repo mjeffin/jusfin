@@ -24,9 +24,6 @@ $$;
 call create_monthly_budget_for_exising_categories();
 
 
-create or replace view category_spend_current_month  AS
-select * from category_spend_for_month(date_trunc('month', now())::date);
-
 create or replace function category_spend_for_month (input_month date) RETURNS
     table (name text, total bigint, budget_remaining bigint, budget_utilized numeric) AS
 $$
@@ -49,4 +46,7 @@ language 'plpgsql';
 create or replace view budget_for_current_month AS
     select c.name, mcb.amount from category c left join monthly_category_budget mcb on c.id = mcb.category_id
     where mcb.month = date_trunc('month',now()::date) order by mcb.amount desc nulls last ;
+
+create or replace view category_spend_current_month  AS
+select * from category_spend_for_month(date_trunc('month', now())::date);
 
